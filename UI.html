@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Website Converser</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+    }
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+    .chat {
+      margin-bottom: 20px;
+      padding: 10px;
+      background-color: #f1f1f1;
+      border-radius: 5px;
+      overflow-wrap: break-word; /* Line wrapping for long sentences */
+    }
+    .message {
+      padding: 8px 12px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      font-size: 16px;
+      word-wrap: break-word; /* Line wrapping for long sentences */
+    }
+    .user-message {
+      background-color: #DCF8C6;
+      color: #4F8C10;
+      align-self: flex-end;
+    }
+    .bot-message {
+      background-color: #F0F0F0;
+      color: #333;
+      align-self: flex-start;
+    }
+    .form-group {
+      display: flex;
+      margin-top: 20px;
+    }
+    input[type="text"] {
+      flex-grow: 1;
+      padding: 8px;
+      font-size: 16px;
+      border: none;
+      border-radius: 20px;
+      box-sizing: border-box;
+      margin-right: 8px;
+      background-color: #f5f5f5;
+    }
+    button {
+      padding: 8px 16px;
+      font-size: 16px;
+      background-color: #007BFF;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Website Converser</h1>
+    <div class="chat" id="chat">
+      <div class="message bot-message">Welcome to the Chat Bot! How can I assist you?</div>
+    </div>
+    <div class="form-group">
+      <input type="text" id="question" name="question" placeholder="Type your message...">
+      <select id="language">
+        <option value="English">English</option>
+        <option value="Kannada">Kannada</option>
+        <option value="Hindi">Hindi</option>
+      </select>
+      <button onclick="submitQuestion()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    function createMessageElement(message, isUser) {
+      var messageElement = document.createElement("div");
+      messageElement.className = "message " + (isUser ? "user-message" : "bot-message");
+      messageElement.textContent = message;
+      return messageElement;
+    }
+
+    function submitQuestion() {
+      var question = document.getElementById("question").value;
+      var language = document.getElementById("language").value;
+      var chatElement = document.getElementById("chat");
+
+      // Create and display the user message
+      var userMessage = createMessageElement(question, true);
+      chatElement.appendChild(userMessage);
+
+      // Construct the request URL with the question and language as query parameters
+      var url = "http://localhost:8000/generateAnswer?query=" + encodeURIComponent(question) + "&language=" + encodeURIComponent(language);
+
+      // Send a fetch request to the backend
+      fetch(url)
+        .then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error('Request failed');
+      }
+    })
+        .then(data => {
+          // Create and display the bot message
+          const responseText = data.answer;
+          var botMessage = createMessageElement(responseText, false);
+          chatElement.appendChild(botMessage);
+        })
+        .catch(error => {
+          // Display the error message if there was an error with the request
+          var errorMessage = error.message || "An error occurred. Please try again later.";
+          var errorBotMessage = createMessageElement(errorMessage, false);
+          chatElement.appendChild(errorBotMessage);
+        })
+        .finally(() => {
+          // Scroll to the bottom of the chat
+          chatElement.scrollTop = chatElement.scrollHeight;
+
+          // Clear the input field
+          document.getElementById("question").value = "";
+        });
+    }
+  </script>
+</body>
+</html>
