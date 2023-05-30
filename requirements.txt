@@ -7,3 +7,6 @@ flask_cors
 tenacity
 black
 pinecone-client
+google-cloud-documentai
+google-cloud-storage
+google-cloud-documentai-toolbox
