@@ -10,6 +10,7 @@ import tiktoken
 from tqdm import tqdm
 from uuid import uuid4
 import pandas as pd
+import pinecone
 import openai
 from time import sleep
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -45,6 +46,94 @@ def read_text_files(base_dir):
 
     return documents
 
+def GenerateEmbeddingsAndStoreInDf(chunks):
+    batch_size = 100  # how many embeddings we create and insert at once
+    finalList = []
+    for i in tqdm(range(0, len(chunks), batch_size)):
+        # find end of batch
+        i_end = min(len(chunks), i + batch_size)
+        batch = chunks[i:i_end]
+        texts = [x["text"] for x in batch]
+        # create embeddings (try-except added to avoid RateLimitError)
+        try:
+            res = openai.Embedding.create(input=texts, engine=embed_model)
+        except:
+            done = False
+            while not done:
+                sleep(5)
+                try:
+                    res = openai.Embedding.create(input=texts, engine=embed_model)
+                    done = True
+                except:
+                    pass
+        embeds = [record["embedding"] for record in res["data"]]
+        # cleanup metadata
+        meta_batch = [
+            {"title": x["title"], "type": x["type"], "text": x["text"], "chunk": x["chunk"]}
+            for x in batch
+        ]
+        finalList.extend(
+            [x[0]["type"], x[0]["title"], x[0]["text"], x[0]["chunk"], x[1]]
+            for x in list(zip(meta_batch, embeds))
+        )
+
+    df = pd.DataFrame(
+        finalList,
+        columns=["DocumentType", "DocumentTitle", "Content", "Chunk", "Embeddings"],
+    )
+    df.to_csv("DocumentsEmbeddings.csv", index=False)
+
+def GenerateEmbeddingsAndStoreInPinecone(chunks):
+    # find API key in console at app.pinecone.io
+    PINECONE_API_KEY = os.getenv('PINECONE_API_KEY')
+    # find ENV (cloud region) next to API key in console
+    PINECONE_ENVIRONMENT = os.getenv('PINECONE_ENVIRONMENT')
+
+    index_name = 'lab101'
+    pinecone.init(
+        api_key=PINECONE_API_KEY,
+        environment=PINECONE_ENVIRONMENT
+    )
+
+    if index_name not in pinecone.list_indexes():
+        # we create a new index
+        pinecone.create_index(
+            name=index_name,
+            metric='cosine',
+            dimension=1536  # 1536 dim of text-embedding-ada-002
+        )
+
+    #Then we connect to the new created index
+    index = pinecone.GRPCIndex(index_name)
+    batch_size = 100  # how many embeddings we create and insert at once
+    for i in tqdm(range(0, len(chunks), batch_size)):
+        # find end of batch
+        i_end = min(len(chunks), i + batch_size)
+        batch = chunks[i:i_end]
+        ids_batch = [x['id'] for x in meta_batch]
+        texts = [x["text"] for x in batch]
+        # create embeddings (try-except added to avoid RateLimitError)
+        try:
+            res = openai.Embedding.create(input=texts, engine=embed_model)
+        except:
+            done = False
+            while not done:
+                sleep(5)
+                try:
+                    res = openai.Embedding.create(input=texts, engine=embed_model)
+                    done = True
+                except:
+                    pass
+        embeds = [record["embedding"] for record in res["data"]]
+        # cleanup metadata
+        meta_batch = [
+            {"title": x["title"], "type": x["type"], "text": x["text"], "chunk": x["chunk"]}
+            for x in batch
+        ]
+        to_upsert = list(zip(ids_batch, embeds, meta_batch))
+        # upsert to Pinecone
+        index.upsert(vectors=to_upsert)
+
 
 base_directory = "BASE_DIR"
 
@@ -77,38 +166,6 @@ for record in tqdm(documents):
 
 openai.api_key = "OPEN AI API KEY"
 embed_model = "text-embedding-ada-002"
-batch_size = 100  # how many embeddings we create and insert at once
-finalList = []
-for i in tqdm(range(0, len(chunks), batch_size)):
-    # find end of batch
-    i_end = min(len(chunks), i + batch_size)
-    meta_batch = chunks[i:i_end]
-    texts = [x["text"] for x in meta_batch]
-    # create embeddings (try-except added to avoid RateLimitError)
-    try:
-        res = openai.Embedding.create(input=texts, engine=embed_model)
-    except:
-        done = False
-        while not done:
-            sleep(5)
-            try:
-                res = openai.Embedding.create(input=texts, engine=embed_model)
-                done = True
-            except:
-                pass
-    embeds = [record["embedding"] for record in res["data"]]
-    # cleanup metadata
-    meta_batch = [
-        {"title": x["title"], "type": x["type"], "text": x["text"], "chunk": x["chunk"]}
-        for x in meta_batch
-    ]
-    finalList.extend(
-        [x[0]["type"], x[0]["title"], x[0]["text"], x[0]["chunk"], x[1]]
-        for x in list(zip(meta_batch, embeds))
-    )
 
-df = pd.DataFrame(
-    finalList,
-    columns=["DocumentType", "DocumentTitle", "Content", "Chunk", "Embeddings"],
-)
-df.to_csv("DocumentsEmbeddings.csv", index=False)
+GenerateEmbeddingsAndStoreInDf(chunks)
+#GenerateEmbeddingsAndStoreInPinecone(chunks)

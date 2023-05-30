@@ -6,3 +6,4 @@ openai
 flask_cors
 tenacity
 black
+pinecone-client
