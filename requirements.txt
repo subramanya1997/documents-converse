@@ -1,0 +1,8 @@
+PyYAML
+flask
+scipy
+pandas
+openai
+flask_cors
+tenacity
+black

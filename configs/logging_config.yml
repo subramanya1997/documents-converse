@@ -1,0 +1,29 @@
+#
+# Created on Wed Apr 05 2023
+# Copyright (c) 2023 Subramanya N
+#
+version: 1
+disable_existing_loggers: False
+formatters:
+  simple:
+    format: '[%(levelname)s][%(asctime)s][%(name)s:%(lineno)d] %(message)s'
+    datefmt: '%Y/%m/%d %H:%M:%S'
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: simple
+    stream: ext://sys.stdout
+
+  file:
+    class: logging.FileHandler
+    level: DEBUG
+    formatter: simple
+    filename: logs/flask_log.log
+    mode: 'a'
+
+root:
+  level: DEBUG
+  handlers: [console, file]
+  propagate: no
