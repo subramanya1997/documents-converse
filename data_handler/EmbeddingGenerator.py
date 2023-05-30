@@ -11,12 +11,11 @@ from tqdm import tqdm
 from uuid import uuid4
 import pandas as pd
 import pinecone
-import openai
+from llm_openai import create_embedding
 from time import sleep
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 tokenizer = tiktoken.get_encoding("cl100k_base")
-
 
 # create the length function
 def tiktoken_len(text):
@@ -65,18 +64,7 @@ def GenerateEmbeddingsAndStoreInPinecone(chunks):
         batch = chunks[i:i_end]
         ids_batch = [x['id'] for x in meta_batch]
         texts = [x["text"] for x in batch]
-        # create embeddings (try-except added to avoid RateLimitError)
-        try:
-            res = openai.Embedding.create(input=texts, engine=embed_model)
-        except:
-            done = False
-            while not done:
-                sleep(5)
-                try:
-                    res = openai.Embedding.create(input=texts, engine=embed_model)
-                    done = True
-                except:
-                    pass
+        res = create_embedding(text=texts)
         embeds = [record["embedding"] for record in res["data"]]
         # cleanup metadata
         meta_batch = [
@@ -116,3 +104,4 @@ for record in tqdm(documents):
         ]
     )
 GenerateEmbeddingsAndStoreInPinecone(chunks)
+

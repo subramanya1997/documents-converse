@@ -6,6 +6,7 @@ openai
 flask_cors
 tenacity
 black
+PyPDF2
 pinecone-client
 google-cloud-documentai
 google-cloud-storage

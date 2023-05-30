@@ -52,12 +52,12 @@ def create_chat_completion(
 
 
 @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-def create_embedding(text: Text, model: Text = "text-embedding-ada-002") -> List[float]:
+def create_embedding(text:Text | List[Text], model: Text = "text-embedding-ada-002") -> List[float]:
     """
     Creates a text embedding using OpenAI's Text Embedding model.
 
     Args:
-        text (str): The text to embed.
+        text (str) | List[str]: The text to embed
         model (str, optional): The name of the text embedding model to use. Defaults to
             "text-embedding-ada-002".
 
@@ -69,4 +69,4 @@ def create_embedding(text: Text, model: Text = "text-embedding-ada-002") -> List
         model=model,
         input=text,
     )
-    return response["data"][0]["embedding"]
+    return response

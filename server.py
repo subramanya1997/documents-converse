@@ -2,25 +2,19 @@
    Created on Mon May 29 2023
    Copyright (c) 2023 Subramanya N
 """
-import os
 import logging
 from utils import parse_args, setup_logging
 from flask import Flask, render_template, request, jsonify
-from scipy import spatial
 import pandas as pd
 import pinecone
-import ast
 from llm_openai import create_chat_completion, create_embedding
 from flask_cors import CORS
-from data_handling import *
+from data_handler import *
 
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
-
-# Load Embeddings
-df = pd.read_csv("data/DocumentsEmbeddings.csv")
 
 def retrieve_related_docs_from_pinecone(
         query: str,
@@ -28,7 +22,8 @@ def retrieve_related_docs_from_pinecone(
 ):
     index_name = 'lab101'
     index = pinecone.GRPCIndex(index_name)
-    query_embedding = create_embedding(text=query,model = args.embeddings_model)
+    response = create_embedding(text=query,model = args.embeddings_model)
+    query_embedding = response["data"][0]["embedding"]
     res = index.query(query_embedding, top_k=top_n, include_metadata=True)
     contexts = [
         x['metadata']['text'] for x in res['matches']
