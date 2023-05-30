@@ -28,7 +28,7 @@ def strings_ranked_by_relatedness(
     top_n: int = 100,
 ):
     """Returns a list of strings and relatednesses, sorted from most related to least."""
-    query_embedding = create_embedding(text=query)
+    query_embedding = create_embedding(text=query,model = args.embeddings_model)
 
     strings_and_relatednesses = [
         (
@@ -52,7 +52,7 @@ def generate_answer():
     query = request.form.get("query")
     language = request.form.get("language")
 
-    strings, relatednesses = strings_ranked_by_relatedness(query, df, top_n=3)
+    strings, relatednesses = strings_ranked_by_relatedness(query, df, top_n=args.top_n)
     # Creating Context from retrieved data
     augmented_query = "\n\n---\n\n".join(strings) + "\n\n-----\n\n" + query
     ## Creating the prompt for model
@@ -69,7 +69,9 @@ def generate_answer():
                 "role": "user",
                 "content": augmented_query + "\n Answer in {}".format(language),
             },
-        ]
+        ],
+        model = args.chat_model,
+        temperature=args.temperature
     )
 
     return jsonify({"answer": text})
