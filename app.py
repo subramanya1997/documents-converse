@@ -37,11 +37,12 @@ def create_augmented_query_from_pinecone(query):
 
 @app.route("/")
 def root():
-    return render_template("UI.html")
+    return render_template("index.html")
 
 
 @app.route("/generateAnswer", methods=["POST"])
 def generate_answer():
+    return jsonify({"answer": "Hello World"})
     query = request.form.get("query")
     language = request.form.get("language")
     augmented_query = create_augmented_query_from_pinecone(query)

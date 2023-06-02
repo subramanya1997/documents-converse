@@ -14,7 +14,7 @@ from tenacity import (
 logger = logging.getLogger(__name__)
 
 
-@retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
+@retry(wait=wait_random_exponential(min=1, max=5), stop=stop_after_attempt(6))
 def create_chat_completion(
     messages: List[Dict[str, Any]],
     model: Text = "gpt-3.5-turbo",
@@ -51,8 +51,8 @@ def create_chat_completion(
     return response["choices"][0]["message"]["content"], response["usage"]
 
 
-@retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-def create_embedding(text:Text | List[Text], model: Text = "text-embedding-ada-002") -> List[float]:
+@retry(wait=wait_random_exponential(min=1, max=5), stop=stop_after_attempt(6))
+def create_embedding(text: List[Text], model: Text = "text-embedding-ada-002") -> List[float]:
     """
     Creates a text embedding using OpenAI's Text Embedding model.
 
@@ -69,4 +69,4 @@ def create_embedding(text:Text | List[Text], model: Text = "text-embedding-ada-0
         model=model,
         input=text,
     )
-    return response
+    return response.vector

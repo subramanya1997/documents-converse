@@ -57,5 +57,5 @@ set -a
 
 # run the script
 echo '----------------------------'
-echo running server.py...
-$PYTHON -W ignore server.py "$@"
+echo running app.py...
+$PYTHON -W ignore app.py "$@"
