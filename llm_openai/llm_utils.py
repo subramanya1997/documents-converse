@@ -13,6 +13,7 @@ from tenacity import (
 
 logger = logging.getLogger(__name__)
 
+
 @retry(wait=wait_random_exponential(min=1, max=5), stop=stop_after_attempt(3))
 def create_chat_completion(
     messages: List[Dict[str, Any]],
@@ -55,7 +56,9 @@ def create_chat_completion(
 
 
 @retry(wait=wait_random_exponential(min=1, max=5), stop=stop_after_attempt(6))
-def create_embeddings(text: Text, model: Text = "text-embedding-ada-002") -> List[float]:
+def create_embeddings(
+    text: Text, model: Text = "text-embedding-ada-002"
+) -> List[float]:
     """
     Creates a text embedding using OpenAI's Text Embedding model.
 
@@ -76,10 +79,14 @@ def create_embeddings(text: Text, model: Text = "text-embedding-ada-002") -> Lis
             ).data
             return [d["embedding"] for d in response]
         else:
-            return [openai.Embedding.create(
-                model=model,
-                input=[text],
-            ).data[0]["embedding"]]
+            return [
+                openai.Embedding.create(
+                    model=model,
+                    input=[text],
+                ).data[
+                    0
+                ]["embedding"]
+            ]
     except Exception as e:
         logger.error(f"Error creating embedding: {e}")
         return []

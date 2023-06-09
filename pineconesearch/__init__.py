@@ -14,9 +14,7 @@ PINECONE_INDEX_NAME = os.environ["PINECONE_INDEX_NAME"]
 pinecone_search = PineConeSearch(
     pinecone_api_key=PINECONE_API_KEY,
     pinecone_env=PINECONE_ENV,
-    pinecone_index=PINECONE_INDEX_NAME
+    pinecone_index=PINECONE_INDEX_NAME,
 )
 
-__all__ = [
-    "pinecone_search"
-]
+__all__ = ["pinecone_search"]

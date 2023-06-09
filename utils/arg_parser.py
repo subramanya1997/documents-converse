@@ -5,6 +5,7 @@
 import os
 import argparse
 
+
 def parse_args():
     """
     Parse command line arguments.
@@ -37,7 +38,7 @@ def parse_args():
     parser.add_argument(
         "--top-n",
         type=float,
-        default=8,
+        default=7,
         help="Number of files to consider for relatedness. Defaults to 5",
     )
 
@@ -62,7 +63,7 @@ def parse_args():
         default="configs/logging_config.yml",
         help="Path to logger config file. Defaults to configs/logger_config.yaml",
     )
-    
+
     # The variables are used throughout the code to determine which storage
     # system to use, and where to store uploads.
     parser.add_argument(

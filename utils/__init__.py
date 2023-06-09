@@ -8,9 +8,9 @@ from utils.gcpocr import convertPDFToText
 from utils.app_utils import *
 
 __all__ = [
-    "parse_args", 
-    "setup_logging", 
+    "parse_args",
+    "setup_logging",
     "validate_zip_file",
     "convertPDFToText",
-    "process_zip"
+    "process_zip",
 ]

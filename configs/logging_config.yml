@@ -12,18 +12,18 @@ formatters:
 handlers:
   console:
     class: logging.StreamHandler
-    level: DEBUG
+    level: INFO
     formatter: simple
     stream: ext://sys.stdout
 
   file:
     class: logging.FileHandler
-    level: DEBUG
+    level: INFO
     formatter: simple
     filename: logs/flask_log.log
     mode: 'a'
 
 root:
-  level: DEBUG
+  level: INFO
   handlers: [console, file]
   propagate: no

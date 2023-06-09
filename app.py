@@ -15,90 +15,102 @@ from pineconesearch import pinecone_search
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
+
 @app.route("/")
 def root():
     return render_template("index.html")
 
+
 @app.route("/uploadzip", methods=["POST"])
 def upload_zip():
-    if 'file' not in request.files:
+    if "file" not in request.files:
         return jsonify({"error": "No file selected for uploading"}), 400
-    
-    file = request.files['file']
-    if file.filename == '':
+
+    file = request.files["file"]
+    if file.filename == "":
         return jsonify({"error": "No file selected for uploading"}), 400
-    
+
     if file:
         curr_timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        filename = f"{secure_filename(file.filename).split('.zip')[0]}_{curr_timestamp}.zip"
-        if not app.config['use_cloud_storage']:
-            if not os.path.exists(app.config['upload_folder']):
-                os.makedirs(app.config['upload_folder'])
-            file.save(os.path.join(app.config['upload_folder'], filename))
-        
-        return jsonify({
-            "message": "File successfully uploaded",
-            "filename": filename
-        }), 200
-    
+        filename = (
+            f"{secure_filename(file.filename).split('.zip')[0]}_{curr_timestamp}.zip"
+        )
+        if not app.config["use_cloud_storage"]:
+            if not os.path.exists(app.config["upload_folder"]):
+                os.makedirs(app.config["upload_folder"])
+            file.save(os.path.join(app.config["upload_folder"], filename))
+
+        return (
+            jsonify({"message": "File successfully uploaded", "filename": filename}),
+            200,
+        )
+
+
 @app.route("/validateuploadedzip", methods=["GET"])
 def validate_uploaded_zip():
-    filename = request.args.get('filename')
+    filename = request.args.get("filename")
     if not filename:
         return jsonify({"error": "No filename provided"}), 400
-    file_path = os.path.join(app.config['upload_folder'], filename)
+    file_path = os.path.join(app.config["upload_folder"], filename)
     if validate_zip_file(file_path):
         return jsonify({"message": "File is valid"}), 200
     else:
         return jsonify({"error": "File is invalid"}), 400
-    
+
 
 @app.route("/deletefile", methods=["POST"])
 def delete_file():
     filename = request.form.get("filename")
     if not filename:
         return jsonify({"error": "No filename provided"}), 400
-    file_path = os.path.join(app.config['upload_folder'], filename)
+    file_path = os.path.join(app.config["upload_folder"], filename)
     if os.path.exists(file_path):
         os.remove(file_path)
         return jsonify({"message": "File deleted successfully"}), 200
     else:
         return jsonify({"error": "File does not exist"}), 400
 
+
 @app.route("/processuploadedzip", methods=["GET"])
 def process_uploaded_zip():
-    filename = request.args.get('filename')
+    filename = request.args.get("filename")
     if not filename:
         return jsonify({"error": "No filename provided"}), 400
-    file_path = os.path.join(app.config['upload_folder'], filename)
+    file_path = os.path.join(app.config["upload_folder"], filename)
     if not os.path.exists(file_path):
         return jsonify({"error": "File does not exist"}), 400
     if not process_zip(file_path):
         return jsonify({"error": "No text extracted from the file"}), 400
     return jsonify({"message": "File processed successfully"}), 200
 
+
 @app.route("/generateAnswer", methods=["POST"])
 def generate_answer():
     query = request.form.get("query")
     language = request.form.get("language")
     query_embed = create_embeddings(text=query)[0]
-    augmented_query = pinecone_search.query_and_combine(query_embed, top_k=app.config["top_n"], threshold=app.config["pinecone_threshold"])
+    augmented_query = pinecone_search.query_and_combine(
+        query_embed,
+        top_k=app.config["top_n"],
+        threshold=app.config["pinecone_threshold"],
+    )
     ## Creating the prompt for model
     primer = """You are Q&A bot. A highly intelligent system that answers
-    user questions based on the information provided by the user above
-    each question. If the information can not be found in the information
-    provided by the user you truthfully say "I don't know". Be as concise as possible. 
+    user questions based on the context provided by the user above
+    each question. If the information can not be found in the context
+    provided by the user you truthfully say "I don't know". Be as concise as possible.
     """
+    augmented_query = augmented_query if augmented_query != "" else "No context found"
 
     text, usage = create_chat_completion(
         messages=[
             {"role": "system", "content": primer},
             {
                 "role": "user",
-                "content": augmented_query + "\n Answer in {}".format(language),
+                "content": f"Context: \n {augmented_query} \n --- \n Question: {query} \n Answer in {language}",
             },
         ],
-        model = app.config["chat_model"],
+        model=app.config["chat_model"],
         temperature=app.config["temperature"],
     )
 

@@ -17,6 +17,7 @@ from pineconesearch import pinecone_search
 logger = logging.getLogger(__name__)
 tokenizer = tiktoken.get_encoding("cl100k_base")
 
+
 def validate_zip_file(filepath):
     logger.debug(f"Validating zip file: {filepath}")
     if not os.path.exists(filepath):
@@ -25,31 +26,32 @@ def validate_zip_file(filepath):
         return False
     # extract the zip file and check there is at least one file with a valid extension
     count = 0
-    with ZipFile(filepath, 'r') as zipObj:
+    with ZipFile(filepath, "r") as zipObj:
         # Get a list of all archived file names from the zip
         listOfFileNames = zipObj.namelist()
         # Check if the extracted files are only PDFs and images
-        allowed_extensions = {'pdf', 'jpg', 'jpeg', 'png'}
+        allowed_extensions = {"pdf", "jpg", "jpeg", "png"}
         for filename in listOfFileNames:
             # ignore directories
-            if filename.endswith('/'):
+            if filename.endswith("/"):
                 continue
             # ignore files with no extension
-            if '.' not in filename:
+            if "." not in filename:
                 continue
             # ignore backup files like filename.pdf.bak, __MACOSX
-            if filename.split('.')[-1] in {'bak', 'DS_Store', 'MACOSX'}:
+            if filename.split(".")[-1] in {"bak", "DS_Store", "MACOSX"}:
                 continue
-            if filename.split('.')[-1].strip() in allowed_extensions:
+            if filename.split(".")[-1].strip() in allowed_extensions:
                 count += 1
     if count == 0:
         return False
     return True
 
+
 def split_pdf(input_path, output_prefix, max_pages):
     max_pages = int(max_pages)
     pdf_chunks_paths = []
-    with open(input_path, 'rb') as input_file:
+    with open(input_path, "rb") as input_file:
         pdf = PdfReader(input_file)
         total_pages = len(pdf.pages)
         num_chunks = (total_pages + max_pages - 1) // max_pages
@@ -58,7 +60,7 @@ def split_pdf(input_path, output_prefix, max_pages):
             e_page = min((i + 1) * max_pages, total_pages)
 
             output_path = f"{output_prefix}$${i+1}.pdf"
-            with open(output_path, 'wb') as output_file:
+            with open(output_path, "wb") as output_file:
                 output_pdf = PdfWriter()
                 for page in range(s_page, e_page):
                     output_pdf.add_page(pdf.pages[page])
@@ -67,6 +69,7 @@ def split_pdf(input_path, output_prefix, max_pages):
             pdf_chunks_paths.append(output_path)
     return pdf_chunks_paths
 
+
 def process_zip(filepath):
     logger.debug(f"Processing zip file: {filepath}")
     if not os.path.exists(filepath):
@@ -74,30 +77,32 @@ def process_zip(filepath):
     if not filepath.endswith(".zip"):
         return False
     # get all pdfs and images from the zip file which
-    allowed_extensions = {'pdf', 'jpg', 'jpeg', 'png'}
+    allowed_extensions = {"pdf", "jpg", "jpeg", "png"}
     # create a temporary directory to store the extracted files
-    temp_dir = os.path.join(os.path.dirname(filepath), f'temp_{os.path.basename(filepath)}')
-    with ZipFile(filepath, 'r') as zipObj:
+    temp_dir = os.path.join(
+        os.path.dirname(filepath), f"temp_{os.path.basename(filepath)}"
+    )
+    with ZipFile(filepath, "r") as zipObj:
         listOfFileNames = zipObj.namelist()
         for filename in listOfFileNames:
             # ignore directories
-            if filename.endswith('/'):
+            if filename.endswith("/"):
                 continue
             # ignore files with no extension
-            if '.' not in filename:
+            if "." not in filename:
                 continue
             # ignore backup files like filename.pdf.bak, __MACOSX
-            if filename.split('.')[-1].strip() in {'bak', 'DS_Store', 'MACOSX'}:
+            if filename.split(".")[-1].strip() in {"bak", "DS_Store", "MACOSX"}:
                 continue
             # ignore directories starting with __ (like __MACOSX)
             c_flag = False
-            for dir in filename.split('/')[:-1]:
-                if dir.strip().startswith('__'):
+            for dir in filename.split("/")[:-1]:
+                if dir.strip().startswith("__"):
                     c_flag = True
                     break
             if c_flag:
                 continue
-            if filename.split('.')[-1].strip() in allowed_extensions:
+            if filename.split(".")[-1].strip() in allowed_extensions:
                 zipObj.extract(filename, temp_dir)
 
     extracted_text = []
@@ -108,21 +113,23 @@ def process_zip(filepath):
                 "DocumentName": file,
                 "Content": None,
             }
-            if file.split('.')[-1].strip() in allowed_extensions:
+            if file.split(".")[-1].strip() in allowed_extensions:
                 _filepath = os.path.join(root, file)
-                if file.split('.')[-1].strip() == 'pdf':
+                if file.split(".")[-1].strip() == "pdf":
                     logger.debug(f"Processing PDF: {_filepath}")
                     document["DocumentType"] = "pdf"
                     try:
-                        with open(_filepath, 'rb') as input_file:
+                        with open(_filepath, "rb") as input_file:
                             pdf = PdfReader(input_file)
                             total_pages = len(pdf.pages)
                     except:
                         continue
                     if total_pages > 15:
-                        output_prefix = _filepath.split('.pdf')[0]
-                        pdf_chunks_paths = split_pdf(_filepath, output_prefix, os.environ['MAX_PDF_PAGES'])
-                        
+                        output_prefix = _filepath.split(".pdf")[0]
+                        pdf_chunks_paths = split_pdf(
+                            _filepath, output_prefix, os.environ["MAX_PDF_PAGES"]
+                        )
+
                         text = ""
                         for pdf_chunk_path in pdf_chunks_paths:
                             text += convertPDFToText(pdf_chunk_path)
@@ -141,9 +148,11 @@ def process_zip(filepath):
     generate_embeddings_upsert(extracted_text)
     return True
 
+
 def token_len(text):
     tokens = tokenizer.encode(text, disallowed_special=())
     return len(tokens)
+
 
 def generate_embeddings_upsert(documents):
     text_splitter = RecursiveCharacterTextSplitter(
@@ -172,20 +181,27 @@ def generate_embeddings_upsert(documents):
         # find end of batch
         i_end = min(len(chunks), i + 100)
         batch = chunks[i:i_end]
-        ids_batch = [x['id'] for x in batch]
+        ids_batch = [x["id"] for x in batch]
         texts = [x["text"] for x in batch]
         embeds = create_embeddings(text=texts)
         # cleanup metadata
         meta_batch = [
-            {"title": x["title"], "type": x["type"], "text": x["text"], "chunk_index": x["chunk_index"]}
+            {
+                "title": x["title"],
+                "type": x["type"],
+                "text": x["text"],
+                "chunk_index": x["chunk_index"],
+            }
             for x in batch
         ]
         to_upsert = []
         for id, embed, meta in list(zip(ids_batch, embeds, meta_batch)):
-            to_upsert.append({
-                'id': id,
-                'values': embed,
-                'metadata': meta,
-            })
+            to_upsert.append(
+                {
+                    "id": id,
+                    "values": embed,
+                    "metadata": meta,
+                }
+            )
         # upsert to Pinecone
         pinecone_search.upsert_documents(to_upsert)
