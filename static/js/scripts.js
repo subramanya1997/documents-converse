@@ -176,25 +176,39 @@ function processUploadedZip(filename) {
             throw new Error('Request failed');
         }
     }).then(data => {
-        showNotification('File processed successfully and updated pinecone', false, false);
+        showNotification('File processed successfully and updated pinecone');
     }).catch(error => {
         showNotification('File processing failed', true);
         console.log("Error during processing: " + error);
     })
 }
 
+var timeouts = [];
+
 function showNotification(message, isError = false, isNeutral = false) {
     const notification = document.getElementById('notification');
     notification.textContent = message;
     notification.classList.remove('error', 'success', 'neutral');
+
+    // Clear previous timeouts
+    for (var i = 0; i < timeouts.length; i++) {
+        clearTimeout(timeouts[i]);
+    }
+
+    // Empty the timeouts array
+    timeouts = [];
+
     if (isError) {
         notification.classList.add('error');
-        setTimeout(clearNotification, 5000);
+        // No timeout is set here, so the error message will stay until a new notification comes in
     } else if (isNeutral) {
         notification.classList.add('neutral');
+        // No timeout is set here, so the neutral message will stay until a new notification comes in
     } else {
         notification.classList.add('success');
-        setTimeout(clearNotification, 5000);
+        // Only in case of success, a timeout is set to clear the notification after 5 seconds
+        var _timout = setTimeout(clearNotification, 5000);
+        timeouts.push(_timout);
     }
 }
 

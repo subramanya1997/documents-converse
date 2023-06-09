@@ -45,7 +45,7 @@ def create_chat_completion(
             model=model,
             messages=messages,
             temperature=temperature,
-            max_tokens=2048,
+            max_tokens=1024,
             top_p=top_p,
         )
         return response["choices"][0]["message"]["content"], response["usage"]

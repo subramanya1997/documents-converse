@@ -109,35 +109,35 @@ def process_zip(filepath):
                 "Content": None,
             }
             if file.split('.')[-1].strip() in allowed_extensions:
-                filepath = os.path.join(root, file)
+                _filepath = os.path.join(root, file)
                 if file.split('.')[-1].strip() == 'pdf':
-                    logger.debug(f"Processing PDF: {filepath}")
+                    logger.debug(f"Processing PDF: {_filepath}")
                     document["DocumentType"] = "pdf"
                     try:
-                        with open(filepath, 'rb') as input_file:
+                        with open(_filepath, 'rb') as input_file:
                             pdf = PdfReader(input_file)
                             total_pages = len(pdf.pages)
                     except:
                         continue
                     if total_pages > 15:
-                        output_prefix = filepath.split('.pdf')[0]
-                        pdf_chunks_paths = split_pdf(filepath, output_prefix, os.environ['MAX_PDF_PAGES'])
+                        output_prefix = _filepath.split('.pdf')[0]
+                        pdf_chunks_paths = split_pdf(_filepath, output_prefix, os.environ['MAX_PDF_PAGES'])
                         
                         text = ""
                         for pdf_chunk_path in pdf_chunks_paths:
                             text += convertPDFToText(pdf_chunk_path)
                     else:
-                        text = convertPDFToText(filepath)
+                        text = convertPDFToText(_filepath)
                     document["Content"] = text
                 else:
-                    text = convertPDFToText(filepath)
+                    text = convertPDFToText(_filepath)
                     document["DocumentType"] = "image"
                     document["Content"] = text
             if document["Content"] is not None:
                 extracted_text.append(document)
     # remove the temporary directory
     os.system(f"rm -rf {temp_dir}")
-    os.system(f"rm -rf {filepath}")
+    os.system(f"rm {filepath}")
     generate_embeddings_upsert(extracted_text)
     return True
 

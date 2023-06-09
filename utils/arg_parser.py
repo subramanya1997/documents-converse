@@ -31,13 +31,13 @@ def parse_args():
     parser.add_argument(
         "--temperature",
         type=float,
-        default=0.7,
+        default=0,
         help="Controls the randomness of the output. Higher values make the output more random, lower values make it more deterministic. Defaults to 0",
     )
     parser.add_argument(
         "--top-n",
         type=float,
-        default=5,
+        default=8,
         help="Number of files to consider for relatedness. Defaults to 5",
     )
 
