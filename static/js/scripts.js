@@ -96,6 +96,110 @@ fileInput.addEventListener('change', () => {
 });
 
 function handleFiles(files) {
-    // Process the uploaded files here
-    console.log(files);
+    const file = files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // Send a POST request to the backend
+    fetch('/uploadzip', {
+        method: 'POST',
+        body: formData
+    }).then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            showNotification('File upload failed', true);
+            throw new Error('Request failed');
+        }
+    }).then(data => {
+        showNotification('File uploaded successfully');
+        const filename = data.filename;
+        validateUploadedZip(filename);
+    }).catch(error => {
+        showNotification('File upload failed', true);
+        console.log("Error during upload: " + error);
+    })
+}
+
+function validateUploadedZip(filename) {
+    showNotification('Validating file...', false, true);
+    fetch(`/validateuploadedzip?filename=${filename}`, {
+        method: 'GET',
+    }).then(response => {
+        if (response.ok) {
+            return response.json();
+        }
+        else {
+            showNotification('File validation failed', true);
+            throw new Error('Request failed');
+        }
+    }).then(data => {
+        showNotification('File validated successfully', false);
+        processUploadedZip(filename=filename);
+    }
+    ).catch(error => {
+        showNotification('File validation failed', true);
+        deleteUploadedZip(filename=filename);
+        console.log("Error during validation: " + error);
+    })
+}
+
+function deleteUploadedZip(filename) {
+    const formData = new FormData();
+    formData.append('filename', filename);
+
+    fetch('/deleteuploadedzip', {
+        method: 'POST',
+        body: formData
+    }).then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Request failed');
+        }
+    }).then(data => {
+        console.log('File deleted successfully');
+    }).catch(error => {
+        console.log("Error during deletion: " + error);
+    })
+}
+
+function processUploadedZip(filename) {
+    showNotification('Processing files...', false, true);
+    fetch(`/processuploadedzip?filename=${filename}`, {
+        method: 'GET',
+    }).then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            showNotification('File processing failed', true);
+            throw new Error('Request failed');
+        }
+    }).then(data => {
+        showNotification('File processed successfully and updated pinecone', false, false);
+    }).catch(error => {
+        showNotification('File processing failed', true);
+        console.log("Error during processing: " + error);
+    })
+}
+
+function showNotification(message, isError = false, isNeutral = false) {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.classList.remove('error', 'success', 'neutral');
+    if (isError) {
+        notification.classList.add('error');
+        setTimeout(clearNotification, 5000);
+    } else if (isNeutral) {
+        notification.classList.add('neutral');
+    } else {
+        notification.classList.add('success');
+        setTimeout(clearNotification, 5000);
+    }
+}
+
+function clearNotification() {
+    const notification = document.getElementById('notification');
+    notification.textContent = '';
+    notification.classList.remove('error', 'success', 'neutral');
 }

@@ -138,3 +138,5 @@ bin/
 *.pkl
 *.webp
 *.csv
+configs/*.json
+uploads/*.zip

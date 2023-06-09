@@ -13,8 +13,7 @@ from tenacity import (
 
 logger = logging.getLogger(__name__)
 
-
-@retry(wait=wait_random_exponential(min=1, max=5), stop=stop_after_attempt(6))
+@retry(wait=wait_random_exponential(min=1, max=5), stop=stop_after_attempt(3))
 def create_chat_completion(
     messages: List[Dict[str, Any]],
     model: Text = "gpt-3.5-turbo",
@@ -41,23 +40,27 @@ def create_chat_completion(
             (Text) and the usage information (dict).
     """
     logger.debug(f"Creating chat completion with messages: {str(messages)}")
-    response = openai.ChatCompletion.create(
-        model=model,
-        messages=messages,
-        temperature=temperature,
-        max_tokens=2048,
-        top_p=top_p,
-    )
-    return response["choices"][0]["message"]["content"], response["usage"]
+    try:
+        response = openai.ChatCompletion.create(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=2048,
+            top_p=top_p,
+        )
+        return response["choices"][0]["message"]["content"], response["usage"]
+    except Exception as e:
+        logger.error(f"Error creating chat completion: {e}")
+        return "", {}
 
 
 @retry(wait=wait_random_exponential(min=1, max=5), stop=stop_after_attempt(6))
-def create_embedding(text: List[Text], model: Text = "text-embedding-ada-002") -> List[float]:
+def create_embeddings(text: Text, model: Text = "text-embedding-ada-002") -> List[float]:
     """
     Creates a text embedding using OpenAI's Text Embedding model.
 
     Args:
-        text (str) | List[str]: The text to embed
+        text (str): The text to embed
         model (str, optional): The name of the text embedding model to use. Defaults to
             "text-embedding-ada-002".
 
@@ -65,8 +68,18 @@ def create_embedding(text: List[Text], model: Text = "text-embedding-ada-002") -
         List[float]: The text embedding.
     """
     logger.debug(f"Creating embedding for text: {text}")
-    response = openai.Embedding.create(
-        model=model,
-        input=text,
-    )
-    return response.vector
+    try:
+        if type(text) == list:
+            response = openai.Embedding.create(
+                model=model,
+                input=text,
+            ).data
+            return [d["embedding"] for d in response]
+        else:
+            return [openai.Embedding.create(
+                model=model,
+                input=[text],
+            ).data[0]["embedding"]]
+    except Exception as e:
+        logger.error(f"Error creating embedding: {e}")
+        return []

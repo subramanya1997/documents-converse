@@ -29,7 +29,7 @@ body {
     background-color: #D6DBD2;
     border-radius: 5px;
     overflow-wrap: break-word;
-    max-height: 300px;
+    max-height: 100vh;
     overflow-y: auto;
 }
 
@@ -137,4 +137,26 @@ select {
 
 .drop-zone:hover {
     border-color: #000;
+}
+
+.notification {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.success {
+    background-color: #dff0d8;
+    color: #3c763d;
+}
+
+.error {
+    background-color: #f2dede;
+    color: #a94442;
+}
+
+.neutral {
+    background-color: #f7f7f7;
+    color: #777;
 }

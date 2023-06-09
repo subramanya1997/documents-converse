@@ -7,6 +7,8 @@ flask_cors
 tenacity
 black
 PyPDF2
+tiktoken
+langchain
 pinecone-client
 google-cloud-documentai
 google-cloud-storage

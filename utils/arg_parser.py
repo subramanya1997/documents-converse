@@ -5,7 +5,6 @@
 import os
 import argparse
 
-
 def parse_args():
     """
     Parse command line arguments.
@@ -13,6 +12,10 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="Flask server to handle files using OCR"
     )
+
+    # The variables are used throughout the code to determine the text embedding
+    # model, the GPT-3 model, the temperature for controlling randomness, and
+    # the number of files to consider for relatedness.
     parser.add_argument(
         "--embeddings-model",
         type=str,
@@ -37,6 +40,9 @@ def parse_args():
         default=5,
         help="Number of files to consider for relatedness. Defaults to 5",
     )
+
+    # The variables are used throughout the code to determine the directory
+    # to store logs and the path to the logger config file.
     parser.add_argument(
         "--log-dir",
         type=str,
@@ -48,6 +54,27 @@ def parse_args():
         type=str,
         default="configs/logging_config.yml",
         help="Path to logger config file. Defaults to configs/logger_config.yaml",
+    )
+    
+    # The variables are used throughout the code to determine which storage
+    # system to use, and where to store uploads.
+    parser.add_argument(
+        "--use-cloud-storage",
+        type=bool,
+        default=False,
+        help="Whether to use cloud storage or not. Defaults to False",
+    )
+    parser.add_argument(
+        "--upload-folder",
+        type=str,
+        default="uploads",
+        help="Directory to store uploads. Defaults to uploads",
+    )
+    parser.add_argument(
+        "--cloud-storage-bucket",
+        type=str,
+        default="",
+        help="Name of the cloud storage bucket. Defaults to empty string",
     )
 
     args = parser.parse_args()
