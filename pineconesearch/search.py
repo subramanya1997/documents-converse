@@ -47,9 +47,9 @@ class PineConeSearch:
         Returns:
             dict: Query response
         """
-        return self.index.query(vector=query_vector, top_k=top_k, include_metadata=True)
+        return self.index.query(vector=query_vector, top_k=top_k, include_metadata=True,include_values=True)
     
-    def query_and_combine(self, query_vector: list, top_k: int = 5):
+    def query_and_combine(self, query_vector: list, top_k: int = 5, threshold : float = 0.75):
         """Query Pinecone index and combine responses to string
 
         Args:
@@ -63,6 +63,8 @@ class PineConeSearch:
         responses = self.query(query_vector=query_vector, top_k=top_k)
         _responses = []
         for sample in responses['matches']:
+            if(sample['score']<threshold):
+                continue
             if 'text' in sample['metadata']:
                 _responses.append(sample['metadata']['text'])
             else:
