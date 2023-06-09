@@ -41,6 +41,13 @@ def parse_args():
         help="Number of files to consider for relatedness. Defaults to 5",
     )
 
+    parser.add_argument(
+        "--pinecone-threshold",
+        type=float,
+        default=0.75,
+        help="Defines the threshold value for the matches returned from pinecone",
+    )
+
     # The variables are used throughout the code to determine the directory
     # to store logs and the path to the logger config file.
     parser.add_argument(

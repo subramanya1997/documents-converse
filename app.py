@@ -82,7 +82,7 @@ def generate_answer():
     query = request.form.get("query")
     language = request.form.get("language")
     query_embed = create_embeddings(text=query)[0]
-    augmented_query = pinecone_search.query_and_combine(query_embed, top_k=app.config["top_n"])
+    augmented_query = pinecone_search.query_and_combine(query_embed, top_k=app.config["top_n"], threshold=app.config["pinecone_threshold"])
     ## Creating the prompt for model
     primer = """You are Q&A bot. A highly intelligent system that answers
     user questions based on the information provided by the user above
