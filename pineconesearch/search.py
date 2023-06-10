@@ -57,6 +57,7 @@ class PineConeSearch:
             query_embedding (list): Query embedding
             index (str): Pinecone index to query
             top_k (int, optional): Number of top results to return. Defaults to 5.
+            threshold(int, optional): Similarity Threshold. Defaults to 0.75
 
         Returns:
             str: Combined responses
