@@ -3,21 +3,21 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>ConversaDocs</title>
+        <title>Documents Converse</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     </head>
     <body>
         <div class="container">
-            <h1>ConversaDocs</h1>
-            <div>Effortlessly converse with your documents using natural language queries for instant insights and improved productivity</div>
+            <h1>Documents Converse</h1>
+            <div>Transform scanned documents into a knowledge base using large language models and vector embeddings. Engage in intuitive and context-aware conversations, drawing from the wealth of information within the documents.</div>
             <div class="notification" id="notification"></div>
             <div class="drop-zone" id="drop-zone">
                 <p>Drag and drop your zip file with pdf or images files here or click to select</p>
                 <input type="file" id="file-input" accept=".zip" style="display:none;">
             </div>
             <div class="chat" id="chat">
-                <div class="message bot-message">Welcome to the Chat Bot! How can I assist you?</div>
+                <div class="message bot-message">Welcome! How can I assist you?</div>
             </div>
             <div class="form-group">
                 <input type="text" id="question" name="question" placeholder="Type your message...">
