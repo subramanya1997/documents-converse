@@ -2,6 +2,8 @@
 
 This project aims to create an innovative and user-friendly solution for navigating, scanning, and digitizing government documents, making them easily readable and searchable. By leveraging powerful technologies such as Google Cloud Platform's Document AI, OpenAI's Language Models, Pinecone vector database, and web scraping techniques, this tool simplifies interactions with government documents, facilitating better decision-making, improved public services, and enhanced citizen engagement.
 
+You can read more about this project in the [blog post](https://subramanya.ai/2023/06/10/enhancing-document-interactions)
+
 ## Table of Contents
 
 - [System Design](#system_design)
@@ -23,7 +25,7 @@ The high-level view of system design comprises four main components:
 
 1. Clone the repository
 ```bash
-git clone https://github.com/tasheer10/documents-converse
+git clone https://github.com/subramanya1997/documents-converse
 ```
 
 2. Install the required packages and run the Flask app
